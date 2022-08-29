@@ -9,6 +9,7 @@ function App() {
   const [movies, setMovies] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const url = process.env.REACT_APP_REAL_TIME_DB
 
   // function fetchMovieHandler(){
   //   fetch('https://swapi.dev/api/films/').then(response => {
@@ -26,33 +27,65 @@ function App() {
   //   });
   // }
 
+  // const fetchMovieHandler = useCallback(async() => {
+  //   setIsLoading(true);
+  //   setError(null); // clear previouos error
+  //   try {
+  //     const response = await fetch('https://swapi.dev/api/films/');
+      
+  //     if(!response.ok) {
+  //       throw new Error('something went wrong!');
+  //     }
+      
+  //     const data = await response.json();
+      
+  //     const transformedMovies = data.results.map(movieData => {
+  //       return {
+  //         id: movieData.episode_id,
+  //         title: movieData.title,
+  //         openingText: movieData.opening_crawl,
+  //         releaseDate: movieData.release_date
+  //       }
+  //     });
+  //     setMovies(transformedMovies); 
+  //   } catch(error) {
+  //     setError(error.message);
+  //   }
+  //   setIsLoading(false);
+  // }, []);
+
   const fetchMovieHandler = useCallback(async() => {
     setIsLoading(true);
     setError(null); // clear previouos error
+    // const api_url = process.env.REACT_APP_REAL_TIME_DB
+    // console.log(api_url);
     try {
-      // const response = await fetch('https://swapi.dev/api/films/')
-      const response = await fetch('https://react-http-76bce-default-rtdb.firebaseio.com/movies.json')
+      
+      const response = await fetch(url)
       
       if(!response.ok) {
         throw new Error('something went wrong!');
       }
       
       const data = await response.json();
+      const loadedMovies = [];
+
+      for(const key in data) {
+        loadedMovies.push({
+          id:key,
+          title:data[key].title,
+          openingText:data[key].openingText,
+          releaseDate:data[key].releaseDate
+        })
+      }
       console.log(data);
-      const transformedMovies = data.results.map(movieData => {
-        return {
-          id: movieData.episode_id,
-          title: movieData.title,
-          openingText: movieData.opening_crawl,
-          releaseDate: movieData.release_date
-        }
-      });
-      setMovies(transformedMovies); 
+      
+      setMovies(loadedMovies); 
     } catch(error) {
       setError(error.message);
     }
     setIsLoading(false);
-  }, []);
+  }, [url]);
 
   useEffect(() => {
     fetchMovieHandler();
@@ -60,7 +93,7 @@ function App() {
   
   const addMovieHandler = async(movie) => {
     console.log(movie);
-    const response = await fetch('https://react-http-76bce-default-rtdb.firebaseio.com/movies.json', {
+    const response = await fetch(url, {
       method: 'POST',
       body: JSON.stringify(movie),
       headers: {
